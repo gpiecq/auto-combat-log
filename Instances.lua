@@ -33,11 +33,17 @@ ns.DUNGEONS = {
     [585] = { name = "Magisters' Terrace" },
 }
 
+-- Heroic difficulty IDs: 2 = Classic TBC, 174 = TBC Anniversary
+local HEROIC_DIFFICULTY = {
+    [2] = true,
+    [174] = true,
+}
+
 function ns:IsEligibleInstance(instanceID, difficultyID)
     if self.RAIDS[instanceID] then
         return true
     end
-    if self.DUNGEONS[instanceID] and difficultyID == 2 then
+    if self.DUNGEONS[instanceID] and HEROIC_DIFFICULTY[difficultyID] then
         return true
     end
     return false

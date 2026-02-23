@@ -3,14 +3,12 @@ local _, ns = ...
 local LDB = LibStub("LibDataBroker-1.1")
 local LDBIcon = LibStub("LibDBIcon-1.0")
 
--- Use Spell_Holy_BorrowedTime (green glow) when active, INV_Misc_Note_06 (gray) when inactive
-local ICON_ACTIVE = "Interface\\Icons\\Spell_Holy_BorrowedTime"
-local ICON_INACTIVE = "Interface\\Icons\\INV_Misc_Note_06"
+local ICON_DEFAULT = "Interface\\Icons\\INV_Misc_Note_06"
 
 local dataObject = LDB:NewDataObject("AutoCombatLog", {
     type = "launcher",
     text = "AutoCombatLog",
-    icon = ICON_INACTIVE,
+    icon = ICON_DEFAULT,
     OnClick = function(self, button)
         if button == "LeftButton" then
             ns:ToggleLogging()
@@ -47,9 +45,14 @@ function ns:InitMinimapButton()
 end
 
 function ns:UpdateMinimapIcon()
+    local button = LDBIcon:GetMinimapButton("AutoCombatLog")
+    if not button then return end
+    local icon = button.icon
+    if not icon then return end
+
     if ns:IsLogging() then
-        dataObject.icon = ICON_ACTIVE
+        icon:SetVertexColor(0, 1, 0) -- bright green tint
     else
-        dataObject.icon = ICON_INACTIVE
+        icon:SetVertexColor(1, 1, 1) -- normal color
     end
 end

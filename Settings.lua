@@ -1,7 +1,8 @@
 local _, ns = ...
 
 local SETTINGS_WIDTH = 420
-local SETTINGS_HEIGHT = 520
+local SETTINGS_HEIGHT = 550
+local TAB_HEIGHT = 24
 
 ----------------------------------------------
 -- Show / Toggle Settings
@@ -15,6 +16,24 @@ function ns:OpenSettings()
         self.settingsFrame:Hide()
     else
         self.settingsFrame:Show()
+    end
+end
+
+----------------------------------------------
+-- Tab switching
+----------------------------------------------
+local function SwitchTab(frame, tabName)
+    if tabName == "settings" then
+        frame.settingsScroll:Show()
+        frame.historyScroll:Hide()
+        ns:SetTabActive(frame.settingsTab)
+        ns:SetTabInactive(frame.historyTab)
+    else
+        frame.settingsScroll:Hide()
+        frame.historyScroll:Show()
+        ns:SetTabInactive(frame.settingsTab)
+        ns:SetTabActive(frame.historyTab)
+        ns:RefreshHistoryDisplay()
     end
 end
 
@@ -38,7 +57,7 @@ function ns:CreateSettingsFrame()
     self:CreateBackdrop(frame, 0.92)
 
     -- Title bar
-    local titleBar, titleText = self:CreateTitleBar(frame, "AutoCombatLog - Settings")
+    local titleBar, titleText = self:CreateTitleBar(frame, "AutoCombatLog")
 
     -- Close button
     self:CreateCloseButton(frame)
@@ -52,33 +71,52 @@ function ns:CreateSettingsFrame()
     statusText:SetPoint("RIGHT", statusDot, "LEFT", -6, 0)
     frame.statusText = statusText
 
-    -- Scroll content
-    local scrollFrame, scrollChild = self:CreateScrollFrame(frame, SETTINGS_WIDTH - 12, SETTINGS_HEIGHT - 40)
-    scrollFrame:SetPoint("TOP", 0, -32)
+    -- ============================================
+    -- TAB BUTTONS
+    -- ============================================
+    local tabWidth = 90
+    local settingsTab = self:CreateTab(frame, tabWidth, TAB_HEIGHT, "Settings")
+    settingsTab:SetPoint("TOPLEFT", frame, "TOPLEFT", 10, -30)
+    frame.settingsTab = settingsTab
+
+    local historyTab = self:CreateTab(frame, tabWidth, TAB_HEIGHT, "History")
+    historyTab:SetPoint("LEFT", settingsTab, "RIGHT", 4, 0)
+    frame.historyTab = historyTab
+
+    self:SetTabActive(settingsTab)
+    self:SetTabInactive(historyTab)
+
+    settingsTab:SetScript("OnClick", function() SwitchTab(frame, "settings") end)
+    historyTab:SetScript("OnClick", function() SwitchTab(frame, "history") end)
+
+    local contentTop = -(28 + TAB_HEIGHT + 4) -- title bar + tabs + spacing
+    local contentHeight = SETTINGS_HEIGHT - math.abs(contentTop) - 8
+
+    -- ============================================
+    -- SETTINGS SCROLL FRAME
+    -- ============================================
+    local settingsScroll, settingsChild = self:CreateScrollFrame(frame, SETTINGS_WIDTH - 12, contentHeight)
+    settingsScroll:SetPoint("TOP", 0, contentTop)
+    frame.settingsScroll = settingsScroll
 
     local yOffset = -10
 
-    -- ============================================
     -- SECTION: Status
-    -- ============================================
-    yOffset = self:CreateSectionHeader(scrollChild, "Logging Status", yOffset)
+    yOffset = self:CreateSectionHeader(settingsChild, "Logging Status", yOffset)
 
-    -- Status line
-    local statusLine = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local statusLine = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     statusLine:SetPoint("TOPLEFT", 16, yOffset)
     statusLine:SetTextColor(unpack(self.COLORS.TEXT))
     frame.statusLine = statusLine
     yOffset = yOffset - 20
 
-    -- Session duration line
-    local durationLine = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local durationLine = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     durationLine:SetPoint("TOPLEFT", 16, yOffset)
     durationLine:SetTextColor(unpack(self.COLORS.TEXT_DIM))
     frame.durationLine = durationLine
     yOffset = yOffset - 20
 
-    -- Toggle button
-    local toggleBtn = self:CreateStyledButton(scrollChild, 160, 24, "Toggle Combat Log")
+    local toggleBtn = self:CreateStyledButton(settingsChild, 160, 24, "Toggle Combat Log")
     toggleBtn.text:SetTextColor(unpack(self.COLORS.ACCENT))
     toggleBtn:SetPoint("TOPLEFT", 16, yOffset)
     toggleBtn:SetScript("OnClick", function()
@@ -87,15 +125,12 @@ function ns:CreateSettingsFrame()
     end)
     yOffset = yOffset - 40
 
-    -- ============================================
     -- SECTION: TBC Raids
-    -- ============================================
-    yOffset = self:CreateSectionHeader(scrollChild, "TBC Raids", yOffset)
+    yOffset = self:CreateSectionHeader(settingsChild, "TBC Raids", yOffset)
 
-    -- Select all / Deselect all
-    local selectAllRaids = self:CreateStyledButton(scrollChild, 100, 20, "Select All")
+    local selectAllRaids = self:CreateStyledButton(settingsChild, 100, 20, "Select All")
     selectAllRaids:SetPoint("TOPLEFT", 16, yOffset)
-    local deselectAllRaids = self:CreateStyledButton(scrollChild, 100, 20, "Deselect All")
+    local deselectAllRaids = self:CreateStyledButton(settingsChild, 100, 20, "Deselect All")
     deselectAllRaids:SetPoint("LEFT", selectAllRaids, "RIGHT", 8, 0)
     yOffset = yOffset - 28
 
@@ -103,7 +138,7 @@ function ns:CreateSettingsFrame()
     local sortedRaids = self:GetSortedInstances(self.RAIDS)
     for _, entry in ipairs(sortedRaids) do
         local cb
-        cb, yOffset = self:CreateCheckbox(scrollChild, entry.name, yOffset, function(checked)
+        cb, yOffset = self:CreateCheckbox(settingsChild, entry.name, yOffset, function(checked)
             ns.db.instances[entry.id] = checked
         end, ns.db.instances[entry.id])
         table.insert(raidCheckboxes, { cb = cb, id = entry.id })
@@ -124,14 +159,12 @@ function ns:CreateSettingsFrame()
 
     yOffset = yOffset - 10
 
-    -- ============================================
     -- SECTION: TBC Heroic Dungeons
-    -- ============================================
-    yOffset = self:CreateSectionHeader(scrollChild, "TBC Heroic Dungeons", yOffset)
+    yOffset = self:CreateSectionHeader(settingsChild, "TBC Heroic Dungeons", yOffset)
 
-    local selectAllDungeons = self:CreateStyledButton(scrollChild, 100, 20, "Select All")
+    local selectAllDungeons = self:CreateStyledButton(settingsChild, 100, 20, "Select All")
     selectAllDungeons:SetPoint("TOPLEFT", 16, yOffset)
-    local deselectAllDungeons = self:CreateStyledButton(scrollChild, 100, 20, "Deselect All")
+    local deselectAllDungeons = self:CreateStyledButton(settingsChild, 100, 20, "Deselect All")
     deselectAllDungeons:SetPoint("LEFT", selectAllDungeons, "RIGHT", 8, 0)
     yOffset = yOffset - 28
 
@@ -139,7 +172,7 @@ function ns:CreateSettingsFrame()
     local sortedDungeons = self:GetSortedInstances(self.DUNGEONS)
     for _, entry in ipairs(sortedDungeons) do
         local cb
-        cb, yOffset = self:CreateCheckbox(scrollChild, entry.name, yOffset, function(checked)
+        cb, yOffset = self:CreateCheckbox(settingsChild, entry.name, yOffset, function(checked)
             ns.db.instances[entry.id] = checked
         end, ns.db.instances[entry.id])
         table.insert(dungeonCheckboxes, { cb = cb, id = entry.id })
@@ -160,37 +193,10 @@ function ns:CreateSettingsFrame()
 
     yOffset = yOffset - 10
 
-    -- ============================================
-    -- SECTION: Session History
-    -- ============================================
-    yOffset = self:CreateSectionHeader(scrollChild, "Session History", yOffset)
-
-    -- History container
-    local historyContainer = CreateFrame("Frame", nil, scrollChild)
-    historyContainer:SetPoint("TOPLEFT", 12, yOffset)
-    historyContainer:SetPoint("RIGHT", scrollChild, "RIGHT", -12, 0)
-    historyContainer:SetHeight(1) -- Will grow dynamically
-    frame.historyContainer = historyContainer
-    frame.historyYStart = yOffset
-
-    -- Placeholder - will be populated by RefreshHistoryDisplay
-    yOffset = yOffset - 30 -- Reserve minimum space
-
-    -- Clear history button
-    local clearBtn = self:CreateStyledButton(scrollChild, 120, 20, "Clear History")
-    clearBtn:SetPoint("TOPLEFT", 16, yOffset)
-    clearBtn:SetScript("OnClick", function()
-        ns:ClearHistory()
-        ns:RefreshHistoryDisplay()
-    end)
-    yOffset = yOffset - 30
-
-    -- ============================================
     -- SECTION: Minimap
-    -- ============================================
-    yOffset = self:CreateSectionHeader(scrollChild, "Minimap", yOffset)
+    yOffset = self:CreateSectionHeader(settingsChild, "Minimap", yOffset)
 
-    local _, yNew = self:CreateCheckbox(scrollChild, "Hide minimap button", yOffset, function(checked)
+    local _, yNew = self:CreateCheckbox(settingsChild, "Hide minimap button", yOffset, function(checked)
         ns.db.minimap.hide = checked
         local LDBIcon = LibStub("LibDBIcon-1.0", true)
         if LDBIcon then
@@ -205,24 +211,35 @@ function ns:CreateSettingsFrame()
 
     -- Footer
     yOffset = yOffset - 20
-    local footer = scrollChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    local footer = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     footer:SetPoint("TOPLEFT", 12, yOffset)
     footer:SetText(ns.ADDON_COLOR .. "AutoCombatLog|r v" .. ns.VERSION .. " — /acl for help")
     footer:SetTextColor(unpack(self.COLORS.TEXT_DIM))
     yOffset = yOffset - 20
 
-    frame.scrollChild = scrollChild
-    frame.baseContentHeight = math.abs(yOffset) + 20
-    scrollChild:SetHeight(frame.baseContentHeight)
+    settingsChild:SetHeight(math.abs(yOffset) + 20)
+
+    -- ============================================
+    -- HISTORY SCROLL FRAME
+    -- ============================================
+    local historyScroll, historyChild = self:CreateScrollFrame(frame, SETTINGS_WIDTH - 12, contentHeight)
+    historyScroll:SetPoint("TOP", 0, contentTop)
+    historyScroll:Hide()
+    frame.historyScroll = historyScroll
+    frame.historyChild = historyChild
+
     self.settingsFrame = frame
 
     -- Register with Blizzard Interface Options
     self:RegisterInterfaceOptions()
 
-    -- Update status and history on show
+    -- Update status on show
     frame:SetScript("OnShow", function()
         ns:UpdateSettingsStatus()
-        ns:RefreshHistoryDisplay()
+        -- Refresh history if the history tab is visible
+        if frame.historyScroll:IsShown() then
+            ns:RefreshHistoryDisplay()
+        end
     end)
 end
 
@@ -230,30 +247,33 @@ end
 -- Refresh History Display
 ----------------------------------------------
 local historyRows = {}
+local historyClearBtn = nil
 
 function ns:RefreshHistoryDisplay()
-    if not self.settingsFrame or not self.settingsFrame.historyContainer then return end
+    if not self.settingsFrame or not self.settingsFrame.historyChild then return end
 
-    local container = self.settingsFrame.historyContainer
+    local container = self.settingsFrame.historyChild
 
     -- Clear existing rows
     for _, row in ipairs(historyRows) do
         row:Hide()
     end
+    if historyClearBtn then historyClearBtn:Hide() end
 
     local history = self:GetHistory()
-    local yOff = 0
-    local maxRows = 15 -- Show last 15 sessions
+    local yOff = -10
+
+    -- Section header
+    yOff = self:CreateSectionHeader(container, "Session History", yOff)
 
     if #history == 0 then
-        -- Show "No sessions" message
         local row = historyRows[1]
         if not row then
             row = CreateFrame("Frame", nil, container)
             historyRows[1] = row
         end
         row:SetSize(container:GetWidth(), 20)
-        row:SetPoint("TOPLEFT", 4, yOff)
+        row:SetPoint("TOPLEFT", 16, yOff)
         row:Show()
 
         if not row.emptyText then
@@ -276,7 +296,7 @@ function ns:RefreshHistoryDisplay()
             historyRows[1] = headerRow
         end
         headerRow:SetSize(container:GetWidth(), 16)
-        headerRow:SetPoint("TOPLEFT", 0, yOff)
+        headerRow:SetPoint("TOPLEFT", 12, yOff)
         headerRow:Show()
 
         if not headerRow.dateText then
@@ -308,23 +328,22 @@ function ns:RefreshHistoryDisplay()
             headerRow.sep:SetHeight(1)
             headerRow.sep:SetColorTexture(unpack(self.COLORS.SEPARATOR))
         end
-        headerRow.sep:SetPoint("TOPLEFT", 0, yOff)
-        headerRow.sep:SetPoint("RIGHT", container, "RIGHT", 0, 0)
+        headerRow.sep:ClearAllPoints()
+        headerRow.sep:SetPoint("TOPLEFT", 12, yOff)
+        headerRow.sep:SetPoint("RIGHT", container, "RIGHT", -12, 0)
         headerRow.sep:Show()
         yOff = yOff - 4
 
-        -- Data rows
+        -- Data rows (all sessions, no limit)
         for i, entry in ipairs(history) do
-            if i > maxRows then break end
-
             local rowIdx = i + 1
             local row = historyRows[rowIdx]
             if not row then
                 row = CreateFrame("Frame", nil, container)
                 historyRows[rowIdx] = row
             end
-            row:SetSize(container:GetWidth(), 18)
-            row:SetPoint("TOPLEFT", 0, yOff)
+            row:SetSize(container:GetWidth() - 24, 18)
+            row:SetPoint("TOPLEFT", 12, yOff)
             row:Show()
 
             -- Alternate row background
@@ -388,15 +407,22 @@ function ns:RefreshHistoryDisplay()
         end
     end
 
-    -- Update container height
-    local totalHistoryHeight = math.abs(yOff) + 10
-    container:SetHeight(totalHistoryHeight)
-
-    -- Recalculate scrollChild height
-    if self.settingsFrame.scrollChild and self.settingsFrame.baseContentHeight then
-        local extraHeight = math.max(0, totalHistoryHeight - 30) -- 30 was the reserved space
-        self.settingsFrame.scrollChild:SetHeight(self.settingsFrame.baseContentHeight + extraHeight)
+    -- Clear history button
+    yOff = yOff - 12
+    if not historyClearBtn then
+        historyClearBtn = self:CreateStyledButton(container, 120, 22, "Clear History")
+        historyClearBtn:SetScript("OnClick", function()
+            ns:ClearHistory()
+            ns:RefreshHistoryDisplay()
+        end)
     end
+    historyClearBtn:ClearAllPoints()
+    historyClearBtn:SetPoint("TOPLEFT", 12, yOff)
+    historyClearBtn:Show()
+    yOff = yOff - 34
+
+    -- Update scrollChild height
+    container:SetHeight(math.abs(yOff) + 10)
 end
 
 ----------------------------------------------

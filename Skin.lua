@@ -128,6 +128,34 @@ function ns:CreateCloseButton(parent)
 end
 
 -- ============================================================
+-- Tab helpers
+-- ============================================================
+
+function ns:CreateTab(parent, width, height, text)
+    local tab = CreateFrame("Button", nil, parent, "BackdropTemplate")
+    tab:SetSize(width, height)
+    tab:SetBackdrop(BACKDROP_INFO)
+    tab:SetBackdropColor(unpack(self.COLORS.BG))
+    tab:SetBackdropBorderColor(unpack(self.COLORS.BORDER))
+
+    tab.text = tab:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    tab.text:SetPoint("CENTER")
+    tab.text:SetText(text)
+
+    return tab
+end
+
+function ns:SetTabActive(tab)
+    tab:SetBackdropBorderColor(unpack(self.COLORS.ACCENT))
+    tab.text:SetTextColor(unpack(self.COLORS.ACCENT))
+end
+
+function ns:SetTabInactive(tab)
+    tab:SetBackdropBorderColor(unpack(self.COLORS.BORDER))
+    tab.text:SetTextColor(unpack(self.COLORS.TEXT_DIM))
+end
+
+-- ============================================================
 -- Checkbox helper
 -- ============================================================
 

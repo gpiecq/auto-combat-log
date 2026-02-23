@@ -24,15 +24,54 @@ function ns:RegisterCombatLogEvents()
     end)
 end
 
+-- ============================================================
+-- Confirmation Popups
+-- ============================================================
+
+StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"] = {
+    text = "",
+    button1 = "Enable",
+    button2 = "No",
+    OnAccept = function()
+        local _, _, _, _, _, _, _, instanceID = GetInstanceInfo()
+        ns:StartLogging(instanceID)
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
+StaticPopupDialogs["AUTOCOMBATLOG_STOP_CONFIRM"] = {
+    text = ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou left the instance.\nDisable combat logging?",
+    button1 = "Disable",
+    button2 = "Keep logging",
+    OnAccept = function()
+        ns:StopLogging()
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+    preferredIndex = 3,
+}
+
 function ns:CheckInstance()
     local _, instanceType, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
 
     if self:IsEligibleInstance(instanceID, difficultyID) then
-        if self.db.instances[instanceID] then
-            self:StartLogging(instanceID)
+        -- Entering an eligible instance while not logging
+        if not isCurrentlyLogging and self.db.instances[instanceID] then
+            local instanceName = self:GetInstanceName(instanceID)
+            StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"].text =
+                ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou entered " .. instanceName .. ".\nEnable combat logging?"
+            StaticPopup_Show("AUTOCOMBATLOG_START_CONFIRM")
+        end
+    else
+        -- Left an eligible instance while logging
+        if isCurrentlyLogging then
+            StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
         end
     end
-    -- No auto-stop: manual stop only per spec
 end
 
 function ns:StartLogging(instanceID)
@@ -176,7 +215,7 @@ end
 
 function ns:ShowUploadReminder(duration)
     StaticPopupDialogs["AUTOCOMBATLOG_UPLOAD_REMINDER"] = {
-        text = "Combat logging session ended.\n\nSession duration: " .. duration .. "\n\nRemember to upload your logs to Warcraft Logs!\nLog file: WoW\\Logs\\WoWCombatLog.txt",
+        text = "Combat logging session ended.\n\nSession duration: " .. duration .. "\n\nRemember to upload your logs to Warcraft Logs!\nLog file is in your WoW Logs folder.",
         button1 = "OK",
         timeout = 0,
         whileDead = true,
@@ -220,6 +259,16 @@ SlashCmdList["AUTOCOMBATLOG"] = function(msg)
         end
     elseif msg == "history" then
         ns:PrintHistory()
+    elseif msg == "debug" then
+        local name, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID = GetInstanceInfo()
+        print(ns.ADDON_COLOR .. "AutoCombatLog|r - Debug Info:")
+        print("  Instance Name: " .. tostring(name))
+        print("  Instance Type: " .. tostring(instanceType))
+        print("  Difficulty ID: " .. tostring(difficultyID))
+        print("  Difficulty Name: " .. tostring(difficultyName))
+        print("  Max Players: " .. tostring(maxPlayers))
+        print("  Instance ID: " .. tostring(instanceID))
+        print("  Eligible: " .. tostring(ns:IsEligibleInstance(instanceID, difficultyID)))
     else
         print(ns.ADDON_COLOR .. "AutoCombatLog|r commands:")
         print("  /acl toggle - Start/stop combat logging")
