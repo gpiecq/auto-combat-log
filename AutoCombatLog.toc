@@ -1,0 +1,19 @@
+## Interface: 20504
+## Title: AutoCombatLog
+## Notes: Automatically enables combat logging in TBC raids and heroic dungeons.
+## Author: gpiecq
+## Version: 1.0.0
+## SavedVariables: AutoCombatLogDB
+
+Libs\LibStub\LibStub.lua
+Libs\CallbackHandler-1.0\CallbackHandler-1.0.lua
+Libs\LibDataBroker-1.1\LibDataBroker-1.1.lua
+Libs\LibDBIcon-1.0\LibDBIcon-1.0.lua
+
+Core.lua
+Skin.lua
+Instances.lua
+SessionTimer.lua
+CombatLog.lua
+MinimapButton.lua
+Settings.lua
