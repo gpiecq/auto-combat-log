@@ -39,7 +39,7 @@ Hellfire Ramparts, The Blood Furnace, The Shattered Halls, The Slave Pens, The U
 1. Télécharger ou cloner ce dépôt
 2. Copier le dossier dans le répertoire d'addons WoW :
    ```
-   World of Warcraft/_classic_/Interface/AddOns/AutoCombatLog/
+   World of Warcraft/_anniversary_/Interface/AddOns/AutoCombatLog/
    ```
 3. Relancer WoW ou `/reload`
 
