@@ -1,0 +1,50 @@
+name: Package & Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from TOC
+        id: version
+        run: |
+          VERSION=$(grep "^## Version:" AutoCombatLog.toc | sed 's/## Version: //')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build zip
+        run: |
+          mkdir -p /tmp/addon-build/Libs/LibStub
+          mkdir -p /tmp/addon-build/Libs/CallbackHandler-1.0
+          mkdir -p /tmp/addon-build/Libs/LibDataBroker-1.1
+          mkdir -p /tmp/addon-build/Libs/LibDBIcon-1.0
+
+          cp AutoCombatLog.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
+             CombatLog.lua MinimapButton.lua Settings.lua README.md \
+             /tmp/addon-build/
+
+          cp Libs/LibStub/LibStub.lua /tmp/addon-build/Libs/LibStub/
+          cp Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua /tmp/addon-build/Libs/CallbackHandler-1.0/
+          cp Libs/LibDataBroker-1.1/LibDataBroker-1.1.lua /tmp/addon-build/Libs/LibDataBroker-1.1/
+          cp Libs/LibDBIcon-1.0/LibDBIcon-1.0.lua /tmp/addon-build/Libs/LibDBIcon-1.0/
+
+          cd /tmp/addon-build
+          zip -r "$GITHUB_WORKSPACE/AutoCombatLog.zip" .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.version }}
+          name: AutoCombatLog v${{ steps.version.outputs.version }}
+          files: AutoCombatLog.zip
+          generate_release_notes: true

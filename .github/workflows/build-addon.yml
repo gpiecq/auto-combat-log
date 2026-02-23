@@ -1,0 +1,35 @@
+name: Build Addon ZIP
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare addon folder
+        run: |
+          ADDON_NAME="AutoCombatLog"
+          mkdir -p "build/$ADDON_NAME/Libs/LibStub"
+          mkdir -p "build/$ADDON_NAME/Libs/CallbackHandler-1.0"
+          mkdir -p "build/$ADDON_NAME/Libs/LibDataBroker-1.1"
+          mkdir -p "build/$ADDON_NAME/Libs/LibDBIcon-1.0"
+
+          cp AutoCombatLog.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
+             CombatLog.lua MinimapButton.lua Settings.lua README.md \
+             "build/$ADDON_NAME/"
+
+          cp Libs/LibStub/LibStub.lua "build/$ADDON_NAME/Libs/LibStub/"
+          cp Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua "build/$ADDON_NAME/Libs/CallbackHandler-1.0/"
+          cp Libs/LibDataBroker-1.1/LibDataBroker-1.1.lua "build/$ADDON_NAME/Libs/LibDataBroker-1.1/"
+          cp Libs/LibDBIcon-1.0/LibDBIcon-1.0.lua "build/$ADDON_NAME/Libs/LibDBIcon-1.0/"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: AutoCombatLog
+          path: build/AutoCombatLog
