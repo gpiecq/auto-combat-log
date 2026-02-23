@@ -1,7 +1,7 @@
 local ADDON_NAME, ns = ...
 
 ns.ADDON_NAME = ADDON_NAME
-ns.VERSION = "1.1.0"
+ns.VERSION = "1.0.1"
 
 -- Shared state
 ns.db = nil
