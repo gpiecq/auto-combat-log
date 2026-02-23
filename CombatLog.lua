@@ -9,7 +9,7 @@ local MAX_HISTORY = 50
 function ns:RegisterCombatLogEvents()
     ns:RegisterEvent("PLAYER_ENTERING_WORLD", function(isInitialLogin, isReloadingUi)
         C_Timer.After(1, function()
-            if (isInitialLogin or isReloadingUi) and ns.db.isLogging then
+            if ns.db.isLogging then
                 ns:ResumeLogging()
             else
                 ns:CheckInstance()
@@ -59,12 +59,28 @@ function ns:CheckInstance()
     local _, instanceType, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
 
     if self:IsEligibleInstance(instanceID, difficultyID) then
-        -- Entering an eligible instance while not logging
         if not isCurrentlyLogging and self.db.instances[instanceID] then
-            local instanceName = self:GetInstanceName(instanceID)
-            StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"].text =
-                ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou entered " .. instanceName .. ".\nEnable combat logging?"
-            StaticPopup_Show("AUTOCOMBATLOG_START_CONFIRM")
+            -- Check if WoW combat log is already running (e.g. manually started)
+            if LoggingCombat() then
+                -- Sync addon state with WoW without popup
+                isCurrentlyLogging = true
+                currentSessionInstanceID = instanceID
+                self.db.isLogging = true
+                self.db.lastInstanceID = instanceID
+                self:StartSessionTimer()
+                self:UpdateMinimapIcon()
+                self:AddHistoryEntry(instanceID, "resumed")
+
+                local instanceName = self:GetInstanceName(instanceID)
+                RaidNotice_AddMessage(RaidWarningFrame,
+                    ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging detected for " .. instanceName,
+                    ChatTypeInfo["RAID_WARNING"])
+            else
+                local instanceName = self:GetInstanceName(instanceID)
+                StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"].text =
+                    ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou entered " .. instanceName .. ".\nEnable combat logging?"
+                StaticPopup_Show("AUTOCOMBATLOG_START_CONFIRM")
+            end
         end
     else
         -- Left an eligible instance while logging
@@ -120,7 +136,8 @@ function ns:StopLogging()
     self:ShowUploadReminder(duration)
 end
 
-function ns:ResumeLogging()
+function ns:ResumeLogging(retryCount)
+    retryCount = retryCount or 0
     local _, instanceType, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
 
     if self.db.isLogging and self:IsEligibleInstance(instanceID, difficultyID) then
@@ -137,6 +154,11 @@ function ns:ResumeLogging()
         RaidNotice_AddMessage(RaidWarningFrame,
             ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging RESUMED for " .. instanceName,
             ChatTypeInfo["RAID_WARNING"])
+    elseif retryCount < 2 then
+        -- GetInstanceInfo() may not be ready yet after disconnect, retry
+        C_Timer.After(3, function()
+            ns:ResumeLogging(retryCount + 1)
+        end)
     else
         self.db.isLogging = false
         self.db.lastInstanceID = nil
