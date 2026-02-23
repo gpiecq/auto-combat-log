@@ -2,7 +2,7 @@
 ## Title: AutoCombatLog
 ## Notes: Automatically enables combat logging in TBC raids and heroic dungeons.
 ## Author: gpiecq
-## Version: 1.0.0
+## Version: 1.1.0
 ## SavedVariables: AutoCombatLogDB
 
 Libs\LibStub\LibStub.lua
