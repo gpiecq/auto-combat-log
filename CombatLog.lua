@@ -116,8 +116,8 @@ function ns:StopLogging()
 
     LoggingCombat(false)
 
-    local duration = self:StopSessionTimer()
     local durationSeconds = self:GetRawSessionDuration()
+    local duration = self:StopSessionTimer()
 
     -- Update history entry to "completed"
     self:CompleteHistoryEntry(currentSessionInstanceID, durationSeconds)

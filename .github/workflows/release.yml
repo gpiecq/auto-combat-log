@@ -24,22 +24,23 @@ jobs:
 
       - name: Build zip
         run: |
-          mkdir -p /tmp/addon-build/Libs/LibStub
-          mkdir -p /tmp/addon-build/Libs/CallbackHandler-1.0
-          mkdir -p /tmp/addon-build/Libs/LibDataBroker-1.1
-          mkdir -p /tmp/addon-build/Libs/LibDBIcon-1.0
+          ADDON_NAME="AutoCombatLog"
+          mkdir -p /tmp/addon-build/$ADDON_NAME/Libs/LibStub
+          mkdir -p /tmp/addon-build/$ADDON_NAME/Libs/CallbackHandler-1.0
+          mkdir -p /tmp/addon-build/$ADDON_NAME/Libs/LibDataBroker-1.1
+          mkdir -p /tmp/addon-build/$ADDON_NAME/Libs/LibDBIcon-1.0
 
           cp AutoCombatLog.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
              CombatLog.lua MinimapButton.lua Settings.lua README.md \
-             /tmp/addon-build/
+             /tmp/addon-build/$ADDON_NAME/
 
-          cp Libs/LibStub/LibStub.lua /tmp/addon-build/Libs/LibStub/
-          cp Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua /tmp/addon-build/Libs/CallbackHandler-1.0/
-          cp Libs/LibDataBroker-1.1/LibDataBroker-1.1.lua /tmp/addon-build/Libs/LibDataBroker-1.1/
-          cp Libs/LibDBIcon-1.0/LibDBIcon-1.0.lua /tmp/addon-build/Libs/LibDBIcon-1.0/
+          cp Libs/LibStub/LibStub.lua /tmp/addon-build/$ADDON_NAME/Libs/LibStub/
+          cp Libs/CallbackHandler-1.0/CallbackHandler-1.0.lua /tmp/addon-build/$ADDON_NAME/Libs/CallbackHandler-1.0/
+          cp Libs/LibDataBroker-1.1/LibDataBroker-1.1.lua /tmp/addon-build/$ADDON_NAME/Libs/LibDataBroker-1.1/
+          cp Libs/LibDBIcon-1.0/LibDBIcon-1.0.lua /tmp/addon-build/$ADDON_NAME/Libs/LibDBIcon-1.0/
 
           cd /tmp/addon-build
-          zip -r "$GITHUB_WORKSPACE/AutoCombatLog.zip" .
+          zip -r "$GITHUB_WORKSPACE/AutoCombatLog.zip" $ADDON_NAME
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
