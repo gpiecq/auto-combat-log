@@ -1,6 +1,9 @@
 # Changelog
 
-## [1.1.2] - 2025-02-27
+## [1.1.2] - 2026-02-27
+
+### Added
+- Auto-enable Advanced Combat Logging (required by Warcraft Logs) when starting, resuming or syncing a session
 
 ### Fixed
 - Fix combat log duration always showing zero in history
@@ -25,7 +28,7 @@
 ## [1.0.0]
 
 ### Added
-- Initial release of AutoCombatLog addon for WoW TBC Anniversary
+- Initial release of AutoCombatLogClassic addon for WoW TBC Anniversary
 - Automatic combat logging when entering supported instances
 - Session timer with formatted duration display
 - Minimap button with LibDBIcon

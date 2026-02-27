@@ -5,9 +5,9 @@ local LDBIcon = LibStub("LibDBIcon-1.0")
 
 local ICON_DEFAULT = "Interface\\Icons\\INV_Misc_Note_06"
 
-local dataObject = LDB:NewDataObject("AutoCombatLog", {
+local dataObject = LDB:NewDataObject("AutoCombatLogClassic", {
     type = "launcher",
-    text = "AutoCombatLog",
+    text = "AutoCombatLogClassic",
     icon = ICON_DEFAULT,
     OnClick = function(self, button)
         if button == "LeftButton" then
@@ -17,7 +17,7 @@ local dataObject = LDB:NewDataObject("AutoCombatLog", {
         end
     end,
     OnTooltipShow = function(tooltip)
-        tooltip:AddLine(ns.ADDON_COLOR .. "AutoCombatLog|r")
+        tooltip:AddLine(ns.ADDON_COLOR .. "AutoCombatLogClassic|r")
         tooltip:AddLine(" ")
         if ns:IsLogging() then
             tooltip:AddLine("Status: |cff00ff00Active|r")
@@ -40,12 +40,12 @@ local dataObject = LDB:NewDataObject("AutoCombatLog", {
 })
 
 function ns:InitMinimapButton()
-    LDBIcon:Register("AutoCombatLog", dataObject, ns.db.minimap)
+    LDBIcon:Register("AutoCombatLogClassic", dataObject, ns.db.minimap)
     ns:UpdateMinimapIcon()
 end
 
 function ns:UpdateMinimapIcon()
-    local button = LDBIcon:GetMinimapButton("AutoCombatLog")
+    local button = LDBIcon:GetMinimapButton("AutoCombatLogClassic")
     if not button then return end
     local icon = button.icon
     if not icon then return end

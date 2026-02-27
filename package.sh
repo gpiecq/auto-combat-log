@@ -1,6 +1,6 @@
 #!/bin/bash
-VERSION=$(grep "## Version" AutoCombatLog.toc | sed 's/## Version: //')
-ADDON_NAME="AutoCombatLog"
+VERSION=$(grep "## Version" AutoCombatLogClassic.toc | sed 's/## Version: //')
+ADDON_NAME="AutoCombatLogClassic"
 ZIPNAME="${ADDON_NAME}.zip"
 
 echo "Packaging ${ADDON_NAME} v${VERSION}..."
@@ -12,7 +12,7 @@ mkdir -p build/$ADDON_NAME/Libs/CallbackHandler-1.0
 mkdir -p build/$ADDON_NAME/Libs/LibDataBroker-1.1
 mkdir -p build/$ADDON_NAME/Libs/LibDBIcon-1.0
 
-cp AutoCombatLog.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
+cp AutoCombatLogClassic.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
    CombatLog.lua MinimapButton.lua Settings.lua README.md \
    build/$ADDON_NAME/
 

@@ -1,5 +1,5 @@
 ## Interface: 20504
-## Title: AutoCombatLog
+## Title: AutoCombatLogClassic
 ## Notes: Automatically enables combat logging in TBC raids and heroic dungeons.
 ## Author: gpiecq
 ## Version: 1.1.2

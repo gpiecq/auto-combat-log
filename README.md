@@ -1,4 +1,4 @@
-# AutoCombatLog
+# AutoCombatLogClassic
 
 World of Warcraft Classic TBC Anniversary addon that automatically starts combat logging (`/combatlog`) when entering a TBC raid or heroic dungeon.
 
@@ -6,6 +6,7 @@ World of Warcraft Classic TBC Anniversary addon that automatically starts combat
 
 - **Automatic start** of combat logging when entering a supported instance
 - **Automatic resume** after a disconnect while inside the instance
+- **Advanced Combat Logging** auto-enabled if disabled (required by Warcraft Logs)
 - **Manual stop only** — logs are never stopped automatically
 - **RaidWarning notification** displayed on screen when logging starts / resumes / stops
 - **Custom settings panel** with a dark flat design, ElvUI compatible
@@ -39,7 +40,7 @@ Hellfire Ramparts, The Blood Furnace, The Shattered Halls, The Slave Pens, The U
 1. Download or clone this repository
 2. Copy the folder to your WoW addons directory:
    ```
-   World of Warcraft/_anniversary_/Interface/AddOns/AutoCombatLog/
+   World of Warcraft/_anniversary_/Interface/AddOns/AutoCombatLogClassic/
    ```
 3. Restart WoW or `/reload`
 
@@ -74,8 +75,8 @@ The panel is accessible via `/acl settings`, right-clicking the minimap button, 
 ## Project Structure
 
 ```
-AutoCombatLog/
-├── AutoCombatLog.toc      # Manifest
+AutoCombatLogClassic/
+├── AutoCombatLogClassic.toc  # Manifest
 ├── Core.lua               # Namespace, events, SavedVariables
 ├── Skin.lua               # UI helpers (dark flat theme, ElvUI compatible)
 ├── Instances.lua           # TBC raid and dungeon tables
