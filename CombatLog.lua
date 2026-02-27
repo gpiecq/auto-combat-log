@@ -43,7 +43,7 @@ StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"] = {
 }
 
 StaticPopupDialogs["AUTOCOMBATLOG_STOP_CONFIRM"] = {
-    text = ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou left the instance.\nDisable combat logging?",
+    text = ns.ADDON_COLOR .. "AutoCombatLogClassic|r\n\nYou left the instance.\nDisable combat logging?",
     button1 = "Disable",
     button2 = "Keep logging",
     OnAccept = function()
@@ -54,6 +54,16 @@ StaticPopupDialogs["AUTOCOMBATLOG_STOP_CONFIRM"] = {
     hideOnEscape = true,
     preferredIndex = 3,
 }
+
+function ns:EnsureAdvancedCombatLogging()
+    if GetCVar("advancedCombatLogging") ~= "1" then
+        SetCVar("advancedCombatLogging", "1")
+        print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Advanced Combat Logging was disabled — |cff00ff00enabled automatically|r.")
+        RaidNotice_AddMessage(RaidWarningFrame,
+            ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Advanced Combat Logging enabled!",
+            ChatTypeInfo["RAID_WARNING"])
+    end
+end
 
 function ns:CheckInstance()
     local _, instanceType, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
@@ -70,15 +80,16 @@ function ns:CheckInstance()
                 self:StartSessionTimer()
                 self:UpdateMinimapIcon()
                 self:AddHistoryEntry(instanceID, "resumed")
+                self:EnsureAdvancedCombatLogging()
 
                 local instanceName = self:GetInstanceName(instanceID)
                 RaidNotice_AddMessage(RaidWarningFrame,
-                    ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging detected for " .. instanceName,
+                    ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Combat logging detected for " .. instanceName,
                     ChatTypeInfo["RAID_WARNING"])
             else
                 local instanceName = self:GetInstanceName(instanceID)
                 StaticPopupDialogs["AUTOCOMBATLOG_START_CONFIRM"].text =
-                    ns.ADDON_COLOR .. "AutoCombatLog|r\n\nYou entered " .. instanceName .. ".\nEnable combat logging?"
+                    ns.ADDON_COLOR .. "AutoCombatLogClassic|r\n\nYou entered " .. instanceName .. ".\nEnable combat logging?"
                 StaticPopup_Show("AUTOCOMBATLOG_START_CONFIRM")
             end
         end
@@ -94,6 +105,7 @@ function ns:StartLogging(instanceID)
     if isCurrentlyLogging then return end
 
     LoggingCombat(true)
+    self:EnsureAdvancedCombatLogging()
     isCurrentlyLogging = true
     currentSessionInstanceID = instanceID
     self.db.isLogging = true
@@ -107,7 +119,7 @@ function ns:StartLogging(instanceID)
 
     local instanceName = self:GetInstanceName(instanceID)
     RaidNotice_AddMessage(RaidWarningFrame,
-        ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging started for " .. instanceName,
+        ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Combat logging started for " .. instanceName,
         ChatTypeInfo["RAID_WARNING"])
 end
 
@@ -130,7 +142,7 @@ function ns:StopLogging()
     self:UpdateMinimapIcon()
 
     RaidNotice_AddMessage(RaidWarningFrame,
-        ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging stopped. Duration: " .. duration,
+        ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Combat logging stopped. Duration: " .. duration,
         ChatTypeInfo["RAID_WARNING"])
 
     self:ShowUploadReminder(duration)
@@ -142,6 +154,7 @@ function ns:ResumeLogging(retryCount)
 
     if self.db.isLogging and self:IsEligibleInstance(instanceID, difficultyID) then
         LoggingCombat(true)
+        self:EnsureAdvancedCombatLogging()
         isCurrentlyLogging = true
         currentSessionInstanceID = instanceID
         self:StartSessionTimer()
@@ -152,7 +165,7 @@ function ns:ResumeLogging(retryCount)
 
         local instanceName = self:GetInstanceName(instanceID)
         RaidNotice_AddMessage(RaidWarningFrame,
-            ns.ADDON_COLOR .. "AutoCombatLog:|r Combat logging RESUMED for " .. instanceName,
+            ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Combat logging RESUMED for " .. instanceName,
             ChatTypeInfo["RAID_WARNING"])
     elseif retryCount < 2 then
         -- GetInstanceInfo() may not be ready yet after disconnect, retry
@@ -178,7 +191,7 @@ function ns:ToggleLogging()
             self:StartLogging(instanceID)
         else
             RaidNotice_AddMessage(RaidWarningFrame,
-                ns.ADDON_COLOR .. "AutoCombatLog:|r You are not in an eligible instance.",
+                ns.ADDON_COLOR .. "AutoCombatLogClassic:|r You are not in an eligible instance.",
                 ChatTypeInfo["RAID_WARNING"])
         end
     end
@@ -264,7 +277,7 @@ SlashCmdList["AUTOCOMBATLOG"] = function(msg)
                 ns:StartLogging(instanceID)
             else
                 RaidNotice_AddMessage(RaidWarningFrame,
-                    ns.ADDON_COLOR .. "AutoCombatLog:|r You are not in an eligible instance.",
+                    ns.ADDON_COLOR .. "AutoCombatLogClassic:|r You are not in an eligible instance.",
                     ChatTypeInfo["RAID_WARNING"])
             end
         end
@@ -275,15 +288,15 @@ SlashCmdList["AUTOCOMBATLOG"] = function(msg)
     elseif msg == "status" then
         if ns:IsLogging() then
             local duration = ns:GetFormattedSessionDuration()
-            print(ns.ADDON_COLOR .. "AutoCombatLog:|r Logging is |cff00ff00ACTIVE|r (" .. duration .. ")")
+            print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Logging is |cff00ff00ACTIVE|r (" .. duration .. ")")
         else
-            print(ns.ADDON_COLOR .. "AutoCombatLog:|r Logging is |cffff4c4cINACTIVE|r")
+            print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Logging is |cffff4c4cINACTIVE|r")
         end
     elseif msg == "history" then
         ns:PrintHistory()
     elseif msg == "debug" then
         local name, instanceType, difficultyID, difficultyName, maxPlayers, dynamicDifficulty, isDynamic, instanceID = GetInstanceInfo()
-        print(ns.ADDON_COLOR .. "AutoCombatLog|r - Debug Info:")
+        print(ns.ADDON_COLOR .. "AutoCombatLogClassic|r - Debug Info:")
         print("  Instance Name: " .. tostring(name))
         print("  Instance Type: " .. tostring(instanceType))
         print("  Difficulty ID: " .. tostring(difficultyID))
@@ -292,7 +305,7 @@ SlashCmdList["AUTOCOMBATLOG"] = function(msg)
         print("  Instance ID: " .. tostring(instanceID))
         print("  Eligible: " .. tostring(ns:IsEligibleInstance(instanceID, difficultyID)))
     else
-        print(ns.ADDON_COLOR .. "AutoCombatLog|r commands:")
+        print(ns.ADDON_COLOR .. "AutoCombatLogClassic|r commands:")
         print("  /acl toggle - Start/stop combat logging")
         print("  /acl start - Start combat logging")
         print("  /acl stop - Stop combat logging")
@@ -305,11 +318,11 @@ end
 function ns:PrintHistory()
     local history = self:GetHistory()
     if #history == 0 then
-        print(ns.ADDON_COLOR .. "AutoCombatLog:|r No session history.")
+        print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r No session history.")
         return
     end
 
-    print(ns.ADDON_COLOR .. "AutoCombatLog|r - Session History:")
+    print(ns.ADDON_COLOR .. "AutoCombatLogClassic|r - Session History:")
     for i, entry in ipairs(history) do
         if i > 10 then break end -- Show last 10 in chat
         local statusColor = entry.status == "completed" and "|cff00ff00" or "|cffffcc00"

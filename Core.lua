@@ -79,5 +79,5 @@ ns:RegisterEvent("ADDON_LOADED", function(addonName)
     ns:InitSettings()
     ns:RegisterCombatLogEvents()
 
-    print(ns.ADDON_COLOR .. "AutoCombatLog|r v" .. ns.VERSION .. " loaded. Type /acl for help.")
+    print(ns.ADDON_COLOR .. "AutoCombatLogClassic|r v" .. ns.VERSION .. " loaded. Type /acl for help.")
 end)

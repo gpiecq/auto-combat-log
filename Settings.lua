@@ -57,7 +57,7 @@ function ns:CreateSettingsFrame()
     self:CreateBackdrop(frame, 0.92)
 
     -- Title bar
-    local titleBar, titleText = self:CreateTitleBar(frame, "AutoCombatLog")
+    local titleBar, titleText = self:CreateTitleBar(frame, "AutoCombatLogClassic")
 
     -- Close button
     self:CreateCloseButton(frame)
@@ -201,9 +201,9 @@ function ns:CreateSettingsFrame()
         local LDBIcon = LibStub("LibDBIcon-1.0", true)
         if LDBIcon then
             if checked then
-                LDBIcon:Hide("AutoCombatLog")
+                LDBIcon:Hide("AutoCombatLogClassic")
             else
-                LDBIcon:Show("AutoCombatLog")
+                LDBIcon:Show("AutoCombatLogClassic")
             end
         end
     end, ns.db.minimap.hide)
@@ -213,7 +213,7 @@ function ns:CreateSettingsFrame()
     yOffset = yOffset - 20
     local footer = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
     footer:SetPoint("TOPLEFT", 12, yOffset)
-    footer:SetText(ns.ADDON_COLOR .. "AutoCombatLog|r v" .. ns.VERSION .. " — /acl for help")
+    footer:SetText(ns.ADDON_COLOR .. "AutoCombatLogClassic|r v" .. ns.VERSION .. " — /acl for help")
     footer:SetTextColor(unpack(self.COLORS.TEXT_DIM))
     yOffset = yOffset - 20
 
@@ -451,11 +451,11 @@ end
 ----------------------------------------------
 function ns:RegisterInterfaceOptions()
     local panel = CreateFrame("Frame")
-    panel.name = "AutoCombatLog"
+    panel.name = "AutoCombatLogClassic"
 
     local title = panel:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
     title:SetPoint("TOPLEFT", 16, -16)
-    title:SetText(self.ADDON_COLOR .. "AutoCombatLog|r")
+    title:SetText(self.ADDON_COLOR .. "AutoCombatLogClassic|r")
 
     local desc = panel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
     desc:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -8)

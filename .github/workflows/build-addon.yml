@@ -13,13 +13,13 @@ jobs:
 
       - name: Prepare addon folder
         run: |
-          ADDON_NAME="AutoCombatLog"
+          ADDON_NAME="AutoCombatLogClassic"
           mkdir -p "build/$ADDON_NAME/Libs/LibStub"
           mkdir -p "build/$ADDON_NAME/Libs/CallbackHandler-1.0"
           mkdir -p "build/$ADDON_NAME/Libs/LibDataBroker-1.1"
           mkdir -p "build/$ADDON_NAME/Libs/LibDBIcon-1.0"
 
-          cp AutoCombatLog.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
+          cp AutoCombatLogClassic.toc Core.lua Skin.lua Instances.lua SessionTimer.lua \
              CombatLog.lua MinimapButton.lua Settings.lua README.md \
              "build/$ADDON_NAME/"
 
@@ -31,5 +31,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: AutoCombatLog
-          path: build/AutoCombatLog
+          name: AutoCombatLogClassic
+          path: build/AutoCombatLogClassic
