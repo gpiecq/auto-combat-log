@@ -1,5 +1,10 @@
 # Changelog
 
+## [1.1.4] - 2026-03-01
+
+### Changed
+- Update TOC interface version to 20505 for WoW Anniversary client
+
 ## [1.1.3] - 2026-03-01
 
 ### Changed
