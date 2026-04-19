@@ -125,6 +125,57 @@ function ns:CreateSettingsFrame()
     end)
     yOffset = yOffset - 40
 
+    -- SECTION: Behavior
+    yOffset = self:CreateSectionHeader(settingsChild, "Behavior", yOffset)
+
+    local delayLabel = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    delayLabel:SetPoint("TOPLEFT", 16, yOffset)
+    delayLabel:SetText("Delay before stop-logging prompt:")
+    delayLabel:SetTextColor(unpack(self.COLORS.TEXT))
+    yOffset = yOffset - 20
+
+    local delayOptions = {
+        { label = "Off",  value = 0 },
+        { label = "1m",   value = 60 },
+        { label = "5m",   value = 300 },
+        { label = "15m",  value = 900 },
+        { label = "30m",  value = 1800 },
+    }
+
+    local delayButtons = {}
+    local function refreshDelayButtons()
+        local current = tonumber(ns.db.stopPromptDelay) or 900
+        for _, item in ipairs(delayButtons) do
+            if item.value == current then
+                item.btn.text:SetTextColor(unpack(ns.COLORS.ACCENT))
+                item.btn:SetBackdropBorderColor(unpack(ns.COLORS.ACCENT))
+            else
+                item.btn.text:SetTextColor(unpack(ns.COLORS.TEXT_DIM))
+                item.btn:SetBackdropBorderColor(unpack(ns.COLORS.BORDER))
+            end
+        end
+    end
+
+    local xOffset = 16
+    for _, opt in ipairs(delayOptions) do
+        local btn = self:CreateStyledButton(settingsChild, 48, 20, opt.label)
+        btn:SetPoint("TOPLEFT", xOffset, yOffset)
+        btn:SetScript("OnClick", function()
+            ns.db.stopPromptDelay = opt.value
+            refreshDelayButtons()
+        end)
+        table.insert(delayButtons, { btn = btn, value = opt.value })
+        xOffset = xOffset + 52
+    end
+    refreshDelayButtons()
+    yOffset = yOffset - 28
+
+    local delayHint = settingsChild:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
+    delayHint:SetPoint("TOPLEFT", 16, yOffset)
+    delayHint:SetText("Returning to an eligible instance cancels the prompt.")
+    delayHint:SetTextColor(unpack(self.COLORS.TEXT_DIM))
+    yOffset = yOffset - 24
+
     -- SECTION: TBC Raids
     yOffset = self:CreateSectionHeader(settingsChild, "TBC Raids", yOffset)
 

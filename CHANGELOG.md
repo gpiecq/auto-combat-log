@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.5] - 2026-04-20
+
+### Added
+- Configurable delay before the "stop logging" prompt appears after leaving an eligible instance (Off / 1m / 5m / 15m / 30m, defaults to 15m)
+- Returning to any eligible instance during the delay cancels the prompt and keeps logging running (e.g. wipe/release, or moving between Gruul's Lair and Magtheridon's Lair)
+- Minimap icon shows an amber tint and chat prints a notice while a stop prompt is pending
+
 ## [1.1.4] - 2026-03-01
 
 ### Changed
