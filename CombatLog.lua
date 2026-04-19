@@ -15,12 +15,49 @@ local function FormatDelayShort(seconds)
     return seconds .. "s"
 end
 
+local PENDING_TICK_INTERVAL = 10
+
+local function firePendingStop()
+    if pendingStopTimer then
+        pendingStopTimer:Cancel()
+        pendingStopTimer = nil
+    end
+    ns.isPendingStop = false
+    if ns.db then ns.db.pendingStop = nil end
+    if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
+    if isCurrentlyLogging then
+        StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
+    end
+end
+
+local function startPendingTicker(startTime, delay)
+    if pendingStopTimer then
+        pendingStopTimer:Cancel()
+        pendingStopTimer = nil
+    end
+    pendingStopTimer = C_Timer.NewTicker(PENDING_TICK_INTERVAL, function(self)
+        if not isCurrentlyLogging then
+            self:Cancel()
+            pendingStopTimer = nil
+            ns.isPendingStop = false
+            if ns.db then ns.db.pendingStop = nil end
+            if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
+            return
+        end
+        if time() - startTime >= delay then
+            self:Cancel()
+            firePendingStop()
+        end
+    end)
+end
+
 local function CancelPendingStop()
     if pendingStopTimer then
         pendingStopTimer:Cancel()
         pendingStopTimer = nil
     end
     ns.isPendingStop = false
+    if ns.db then ns.db.pendingStop = nil end
     if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
 end
 
@@ -35,24 +72,59 @@ end
 function ns:SchedulePendingStop(delay)
     CancelPendingStop()
     ns.isPendingStop = true
+    local startTime = time()
+    ns.db.pendingStop = { startTime = startTime, delay = delay }
     self:UpdateMinimapIcon()
 
     local timeStr = FormatDelayShort(delay)
     print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Left instance — stop prompt in " .. timeStr .. " unless you return.")
 
-    pendingStopTimer = C_Timer.NewTimer(delay, function()
-        pendingStopTimer = nil
-        ns.isPendingStop = false
-        if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
-        if isCurrentlyLogging then
-            StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
-        end
-    end)
+    startPendingTicker(startTime, delay)
+end
+
+function ns:RestorePendingStop()
+    local p = self.db.pendingStop
+    if not p or not p.startTime or not p.delay then
+        self.db.pendingStop = nil
+        return false
+    end
+
+    local _, _, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
+    if self:IsEligibleInstance(instanceID, difficultyID) then
+        -- Returned to an eligible instance while offline → cancel pending, resume normally
+        self.db.pendingStop = nil
+        return false
+    end
+
+    -- Restore runtime state so StopLogging / popup / session timer all work
+    isCurrentlyLogging = true
+    currentSessionInstanceID = self.db.lastInstanceID
+    if self.db.sessionStartTime and self.RestoreSessionTimer then
+        self:RestoreSessionTimer(self.db.sessionStartTime)
+    end
+    if not LoggingCombat() then
+        LoggingCombat(true)
+    end
+    self:EnsureAdvancedCombatLogging()
+    ns.isPendingStop = true
+    self:UpdateMinimapIcon()
+
+    local remaining = p.delay - (time() - p.startTime)
+    if remaining <= 0 then
+        firePendingStop()
+    else
+        print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Stop prompt pending — " .. FormatDelayShort(math.max(1, math.floor(remaining))) .. " remaining.")
+        startPendingTicker(p.startTime, p.delay)
+    end
+    return true
 end
 
 function ns:RegisterCombatLogEvents()
     ns:RegisterEvent("PLAYER_ENTERING_WORLD", function(isInitialLogin, isReloadingUi)
         C_Timer.After(1, function()
+            if ns.db.isLogging and ns.db.pendingStop then
+                if ns:RestorePendingStop() then return end
+            end
             if ns.db.isLogging then
                 ns:ResumeLogging()
             else

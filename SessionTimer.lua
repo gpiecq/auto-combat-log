@@ -7,6 +7,10 @@ function ns:StartSessionTimer()
     ns.db.sessionStartTime = sessionStartTime
 end
 
+function ns:RestoreSessionTimer(startTime)
+    sessionStartTime = startTime
+end
+
 function ns:StopSessionTimer()
     local duration = "N/A"
     if sessionStartTime then
