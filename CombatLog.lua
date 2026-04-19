@@ -2,9 +2,53 @@ local _, ns = ...
 
 local isCurrentlyLogging = false
 local currentSessionInstanceID = nil
+local pendingStopTimer = nil
 
 -- Max history entries to keep
 local MAX_HISTORY = 50
+
+local function FormatDelayShort(seconds)
+    if seconds >= 60 then
+        local minutes = math.floor(seconds / 60)
+        return minutes .. " min"
+    end
+    return seconds .. "s"
+end
+
+local function CancelPendingStop()
+    if pendingStopTimer then
+        pendingStopTimer:Cancel()
+        pendingStopTimer = nil
+    end
+    ns.isPendingStop = false
+    if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
+end
+
+function ns:IsPendingStop()
+    return ns.isPendingStop == true
+end
+
+function ns:CancelPendingStop()
+    CancelPendingStop()
+end
+
+function ns:SchedulePendingStop(delay)
+    CancelPendingStop()
+    ns.isPendingStop = true
+    self:UpdateMinimapIcon()
+
+    local timeStr = FormatDelayShort(delay)
+    print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Left instance — stop prompt in " .. timeStr .. " unless you return.")
+
+    pendingStopTimer = C_Timer.NewTimer(delay, function()
+        pendingStopTimer = nil
+        ns.isPendingStop = false
+        if ns.UpdateMinimapIcon then ns:UpdateMinimapIcon() end
+        if isCurrentlyLogging then
+            StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
+        end
+    end)
+end
 
 function ns:RegisterCombatLogEvents()
     ns:RegisterEvent("PLAYER_ENTERING_WORLD", function(isInitialLogin, isReloadingUi)
@@ -67,8 +111,28 @@ end
 
 function ns:CheckInstance()
     local _, instanceType, difficultyID, _, _, _, _, instanceID = GetInstanceInfo()
+    local eligible = self:IsEligibleInstance(instanceID, difficultyID)
 
-    if self:IsEligibleInstance(instanceID, difficultyID) then
+    -- Returning to an eligible instance while a stop prompt is pending → cancel it
+    if eligible and isCurrentlyLogging and pendingStopTimer then
+        CancelPendingStop()
+        StaticPopup_Hide("AUTOCOMBATLOG_STOP_CONFIRM")
+
+        local instanceName = self:GetInstanceName(instanceID)
+        if currentSessionInstanceID ~= instanceID and self.db.instances[instanceID] then
+            currentSessionInstanceID = instanceID
+            self.db.lastInstanceID = instanceID
+            self:AddHistoryEntry(instanceID, "resumed")
+            RaidNotice_AddMessage(RaidWarningFrame,
+                ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Combat logging continued in " .. instanceName,
+                ChatTypeInfo["RAID_WARNING"])
+        else
+            print(ns.ADDON_COLOR .. "AutoCombatLogClassic:|r Back in " .. instanceName .. " — stop prompt cancelled.")
+        end
+        return
+    end
+
+    if eligible then
         if not isCurrentlyLogging and self.db.instances[instanceID] then
             -- Check if WoW combat log is already running (e.g. manually started)
             if LoggingCombat() then
@@ -95,8 +159,13 @@ function ns:CheckInstance()
         end
     else
         -- Left an eligible instance while logging
-        if isCurrentlyLogging then
-            StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
+        if isCurrentlyLogging and not pendingStopTimer then
+            local delay = tonumber(self.db.stopPromptDelay) or 900
+            if delay <= 0 then
+                StaticPopup_Show("AUTOCOMBATLOG_STOP_CONFIRM")
+            else
+                self:SchedulePendingStop(delay)
+            end
         end
     end
 end
@@ -126,6 +195,7 @@ end
 function ns:StopLogging()
     if not isCurrentlyLogging then return end
 
+    CancelPendingStop()
     LoggingCombat(false)
 
     local durationSeconds = self:GetRawSessionDuration()

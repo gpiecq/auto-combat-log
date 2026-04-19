@@ -20,7 +20,11 @@ local dataObject = LDB:NewDataObject("AutoCombatLogClassic", {
         tooltip:AddLine(ns.ADDON_COLOR .. "AutoCombatLogClassic|r")
         tooltip:AddLine(" ")
         if ns:IsLogging() then
-            tooltip:AddLine("Status: |cff00ff00Active|r")
+            if ns.IsPendingStop and ns:IsPendingStop() then
+                tooltip:AddLine("Status: |cffffcc00Active (stop prompt pending)|r")
+            else
+                tooltip:AddLine("Status: |cff00ff00Active|r")
+            end
             local duration = ns:GetFormattedSessionDuration()
             tooltip:AddLine("Session: " .. duration)
 
@@ -51,7 +55,11 @@ function ns:UpdateMinimapIcon()
     if not icon then return end
 
     if ns:IsLogging() then
-        icon:SetVertexColor(0, 1, 0) -- bright green tint
+        if ns.IsPendingStop and ns:IsPendingStop() then
+            icon:SetVertexColor(1, 0.8, 0) -- amber: stop prompt pending
+        else
+            icon:SetVertexColor(0, 1, 0) -- bright green tint
+        end
     else
         icon:SetVertexColor(1, 1, 1) -- normal color
     end

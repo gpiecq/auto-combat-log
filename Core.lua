@@ -1,7 +1,7 @@
 local ADDON_NAME, ns = ...
 
 ns.ADDON_NAME = ADDON_NAME
-ns.VERSION = "1.1.3"
+ns.VERSION = "1.1.5"
 
 -- Shared state
 ns.db = nil
@@ -39,6 +39,7 @@ local function InitializeDB()
         minimap = { hide = false },
         instances = {},
         history = {},
+        stopPromptDelay = 900,
     }
 
     for k, v in pairs(defaults) do
